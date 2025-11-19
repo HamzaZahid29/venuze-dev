@@ -144,10 +144,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Expanded(
                                 child: AppElevatedButton(
+
                                   onTap: () async {
                                     await _handleLogin(context);
                                   },
                                   label: 'Login',
+                                  isLoading: authVM.isLoading,
                                 ),
                               ),
                             ],

@@ -1,4 +1,4 @@
 class AppStaticRoutes {
-  static String loginScreen = '/';
-  static String homeScreen = '/homeScreen';
+  static String loginScreen = '/loginScreen';
+  static String homeScreen = '/';
 }
