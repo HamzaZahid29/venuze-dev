@@ -9,6 +9,7 @@ import 'package:venuze_dev/core/services/app_validation_service.dart';
 import 'package:venuze_dev/core/theme/app_text_styles.dart';
 import 'package:venuze_dev/core/widgets/app_elevated_button.dart';
 import 'package:venuze_dev/core/widgets/app_form_field.dart';
+import 'package:venuze_dev/features/auth/viewmodels/auth_view_model.dart';
 import 'package:venuze_dev/features/auth/widgets/captcha_checkbox.dart';
 import 'package:venuze_dev/features/auth/widgets/or_devider.dart';
 import 'package:venuze_dev/features/auth/widgets/social_auth_button.dart';
@@ -28,10 +29,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleLogin(BuildContext context) async {
+    if (_formKey.currentState?.validate() ?? false) {
+      final authVM = context.read<AuthViewModel>();
+
+      if (authVM.isCaptchaChecked) {
+        await authVM.login(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+          context,
+        );
+      } else {
+        AppSnackbarService.showSnackbar('Captcha not checked');
+      }
+    }
   }
 
   @override
@@ -110,19 +126,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  CaptchaCheckbox(value: false, onChanged: (value) {}),
-                  Row(children: []),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppElevatedButton(
-                          onTap: () async {
-                            await _handleLogin(context);
-                          },
-                          label: 'Login',
-                        ),
-                      ),
-                    ],
+                  Consumer<AuthViewModel>(
+                    builder: (context, authVM, child) {
+                      return Column(
+                        spacing: 10,
+
+                        children: [
+                          CaptchaCheckbox(
+                            value: authVM.isCaptchaChecked,
+                            onChanged: (value) {
+                              print(value);
+                              authVM.setCaptcha(value!);
+                            },
+                          ),
+                          SizedBox(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppElevatedButton(
+
+                                  onTap: () async {
+                                    await _handleLogin(context);
+                                  },
+                                  label: 'Login',
+                                  isLoading: authVM.isLoading,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   SizedBox(height: 10),
                   OrDivider(),
@@ -136,14 +170,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   SocialAuthButton(
-                    svgPath: AppAssets.google ,
+                    svgPath: AppAssets.google,
                     label: 'Login with google',
                     onTap: () {
                       AppSnackbarService.showSnackbar('Not implemented yet');
                     },
                   ),
                   SocialAuthButton(
-                    svgPath: AppAssets.apple ,
+                    svgPath: AppAssets.apple,
                     label: 'Login with apple',
                     onTap: () {
                       AppSnackbarService.showSnackbar('Not implemented yet');
@@ -156,15 +190,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleLogin(BuildContext context) async {
-    if (_formKey.currentState?.validate() ?? false) {
-      // await context.read<AuthProvider>().login(
-      //   emailController.text.trim(),
-      //   passwordController.text.trim(),
-      //   context,
-      // );
-    }
   }
 }
