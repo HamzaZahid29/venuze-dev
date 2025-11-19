@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:venuze_dev/core/network/api_result.dart';
 import 'package:venuze_dev/core/router/app_static_routes.dart';
+import 'package:venuze_dev/core/services/app_snackbar_service.dart';
 import 'package:venuze_dev/features/auth/models/login_response_model.dart';
 
 import '../repository/auth_repository.dart';
@@ -43,6 +44,7 @@ class AuthViewModel extends ChangeNotifier {
       }
     } else if (result is Failure) {
       _errorMessage = result.error;
+      AppSnackbarService.showSnackbar(_errorMessage ?? 'Unexpected error');
     }
 
     _setLoading(false);
@@ -53,8 +55,9 @@ class AuthViewModel extends ChangeNotifier {
     _isLoading = value;
   }
 
-  void _setCaptcha(bool value) {
+  void setCaptcha(bool value) {
     _isCaptchaChecked = value;
+    notifyListeners();
   }
 
   void clearError() {

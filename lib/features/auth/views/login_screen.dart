@@ -36,11 +36,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
-      await context.read<AuthViewModel>().login(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        context,
-      );
+      final authVM = context.read<AuthViewModel>();
+
+      if (authVM.isCaptchaChecked) {
+        await authVM.login(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+          context,
+        );
+      } else {
+        AppSnackbarService.showSnackbar('Captcha not checked');
+      }
     }
   }
 
@@ -120,19 +126,35 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  CaptchaCheckbox(value: false, onChanged: (value) {}),
-                  Row(children: []),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppElevatedButton(
-                          onTap: () async {
-                            await _handleLogin(context);
-                          },
-                          label: 'Login',
-                        ),
-                      ),
-                    ],
+                  Consumer<AuthViewModel>(
+                    builder: (context, authVM, child) {
+                      return Column(
+                        spacing: 10,
+
+                        children: [
+                          CaptchaCheckbox(
+                            value: authVM.isCaptchaChecked,
+                            onChanged: (value) {
+                              print(value);
+                              authVM.setCaptcha(value!);
+                            },
+                          ),
+                          SizedBox(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppElevatedButton(
+                                  onTap: () async {
+                                    await _handleLogin(context);
+                                  },
+                                  label: 'Login',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   SizedBox(height: 10),
                   OrDivider(),
@@ -146,14 +168,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   SocialAuthButton(
-                    svgPath: AppAssets.google ,
+                    svgPath: AppAssets.google,
                     label: 'Login with google',
                     onTap: () {
                       AppSnackbarService.showSnackbar('Not implemented yet');
                     },
                   ),
                   SocialAuthButton(
-                    svgPath: AppAssets.apple ,
+                    svgPath: AppAssets.apple,
                     label: 'Login with apple',
                     onTap: () {
                       AppSnackbarService.showSnackbar('Not implemented yet');

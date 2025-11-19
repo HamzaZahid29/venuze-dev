@@ -16,6 +16,7 @@ class AuthRepository {
     final result = await _apiClient.post(
       '/auth/login',
       data: {"email": email, "password": password},
+      isFormData: true
     );
 
     if (result is Success) {

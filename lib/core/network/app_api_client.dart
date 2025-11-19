@@ -19,21 +19,35 @@ class AppApiClient {
 
   AppApiResult<dynamic> _handleError(DioException error) {
     String message;
+
     if (error.response != null) {
       final data = error.response?.data;
-      if (data is Map<String, dynamic> && data.containsKey('message')) {
-        message = data['message'];
+
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('success') && data['success'] == false) {
+          message = data['message'] ?? "An error occurred";
+        } else if (data.containsKey('message')) {
+          message = data['message'];
+        } else {
+          message = "An unknown server error occurred.";
+        }
       } else if (data is String) {
         message = data;
       } else {
         message = "An unknown server error occurred.";
       }
-    } else if (error.type == DioExceptionType.connectionTimeout) {
+    }
+    // Handle network/timeout errors
+    else if (error.type == DioExceptionType.connectionTimeout) {
       message = "Connection Timeout. Please try again.";
     } else if (error.type == DioExceptionType.receiveTimeout) {
       message = "Receive Timeout. Please try again.";
     } else if (error.type == DioExceptionType.badResponse) {
       message = "Bad Response. Something went wrong.";
+    } else if (error.type == DioExceptionType.cancel) {
+      message = "Request was cancelled.";
+    } else if (error.type == DioExceptionType.unknown) {
+      message = "No internet connection. Please check your network.";
     } else {
       message = "Unexpected error. Please try again.";
     }
@@ -57,11 +71,24 @@ class AppApiClient {
   }
 
   Future<AppApiResult<dynamic>> post(
-    String endpoint, {
-    Map<String, dynamic>? data,
-  }) async {
+      String endpoint, {
+        Map<String, dynamic>? data,
+        bool isFormData = false,
+      }) async {
     try {
-      final response = await _dio.post(endpoint, data: data);
+      final response = await _dio.post(
+        endpoint,
+        data: isFormData ? FormData.fromMap(data ?? {}) : data,
+        options: isFormData
+            ? Options(contentType: Headers.formUrlEncodedContentType)
+            : null,
+      );
+
+      if (response.data is Map<String, dynamic> &&
+          response.data['success'] == false) {
+        return Failure(response.data['message'] ?? "Request failed");
+      }
+
       return Success(response.data);
     } on DioException catch (e) {
       return _handleError(e);
