@@ -9,6 +9,7 @@ import 'package:venuze_dev/core/services/app_validation_service.dart';
 import 'package:venuze_dev/core/theme/app_text_styles.dart';
 import 'package:venuze_dev/core/widgets/app_elevated_button.dart';
 import 'package:venuze_dev/core/widgets/app_form_field.dart';
+import 'package:venuze_dev/features/auth/viewmodels/auth_view_model.dart';
 import 'package:venuze_dev/features/auth/widgets/captcha_checkbox.dart';
 import 'package:venuze_dev/features/auth/widgets/or_devider.dart';
 import 'package:venuze_dev/features/auth/widgets/social_auth_button.dart';
@@ -31,6 +32,16 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleLogin(BuildContext context) async {
+    if (_formKey.currentState?.validate() ?? false) {
+      await context.read<AuthViewModel>().login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        context,
+      );
+    }
   }
 
   @override
@@ -155,15 +166,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleLogin(BuildContext context) async {
-    if (_formKey.currentState?.validate() ?? false) {
-      // await context.read<AuthProvider>().login(
-      //   emailController.text.trim(),
-      //   passwordController.text.trim(),
-      //   context,
-      // );
-    }
   }
 }

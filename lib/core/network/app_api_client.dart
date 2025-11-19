@@ -55,5 +55,16 @@ class AppApiClient {
       return _handleError(e);
     }
   }
-}
 
+  Future<AppApiResult<dynamic>> post(
+    String endpoint, {
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      final response = await _dio.post(endpoint, data: data);
+      return Success(response.data);
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+}
